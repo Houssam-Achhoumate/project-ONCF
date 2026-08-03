@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if est_creation %}Nouvelle demande{% else %}Modifier {{ demande.reference }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <a href="{% if est_creation %}{% url 'dashboard' %}{% else %}{% url 'demande_detail' demande.pk %}{% endif %}" class="back-link">← Retour</a>
+    <span class="eyebrow d-block mt-3">{% if est_creation %}Création{% else %}Mise à jour{% endif %}</span>
+    <h1>{% if est_creation %}Nouvelle demande{% else %}Modifier {{ demande.reference }}{% endif %}</h1>
+    <p class="text-secondary mb-0">Renseignez les informations générales et au moins un article.</p>
+</div>
+
+<form method="post" id="demande-form" novalidate>
+    {% csrf_token %}
+    <div class="content-card form-card mb-4">
+        <div class="section-heading">
+            <span class="section-number">01</span>
+            <div>
+                <h2>Informations générales</h2>
+                <p>Les champs marqués d’un astérisque sont obligatoires.</p>
+            </div>
+        </div>
+
+        {% if formulaire.non_field_errors %}
+            <div class="alert alert-danger">{{ formulaire.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="row g-4">
+            {% for field in formulaire %}
+                <div class="{% if field.name == 'description' %}col-12{% else %}col-md-6{% endif %}">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        {{ field.label }}{% if field.field.required %} <span class="required">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="content-card form-card mb-4">
+        <div class="section-heading justify-content-between flex-wrap">
+            <div class="d-flex gap-3">
+                <span class="section-number">02</span>
+                <div>
+                    <h2>Articles demandés</h2>
+                    <p>Ajoutez une désignation, une quantité positive et, si utile, une unité.</p>
+                </div>
+            </div>
+            <button type="button" id="add-line" class="btn btn-outline-primary">＋ Ajouter une ligne</button>
+        </div>
+
+        {{ lignes.management_form }}
+        {% if lignes.non_form_errors %}
+            <div class="alert alert-danger formset-errors">{{ lignes.non_form_errors }}</div>
+        {% endif %}
+
+        <div id="article-forms" class="article-forms">
+            {% for ligne in lignes %}
+                <div class="article-form {% if ligne.DELETE.value %}d-none{% endif %}" data-form-index="{{ forloop.counter0 }}">
+                    {% for hidden in ligne.hidden_fields %}{{ hidden }}{% endfor %}
+                    <div class="d-none">{{ ligne.DELETE }}</div>
+                    <div class="row g-3 align-items-start">
+                        <div class="col-lg-6">
+                            <label for="{{ ligne.designation.id_for_label }}" class="form-label">Désignation <span class="required">*</span></label>
+                            {{ ligne.designation }}
+                            {% for error in ligne.designation.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-sm-5 col-lg-2">
+                            <label for="{{ ligne.quantite.id_for_label }}" class="form-label">Quantité <span class="required">*</span></label>
+                            {{ ligne.quantite }}
+                            {% for error in ligne.quantite.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-sm-5 col-lg-3">
+                            <label for="{{ ligne.unite.id_for_label }}" class="form-label">Unité</label>
+                            {{ ligne.unite }}
+                            {% for error in ligne.unite.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-sm-2 col-lg-1 d-flex align-items-end remove-cell">
+                            <button type="button" class="btn btn-outline-danger remove-line" aria-label="Retirer cette ligne">×</button>
+                        </div>
+                    </div>
+                    {% if ligne.non_field_errors %}<div class="field-error mt-2">{{ ligne.non_field_errors }}</div>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <template id="empty-form-template">
+            <div class="article-form" data-form-index="__prefix__">
+                {% for hidden in lignes.empty_form.hidden_fields %}{{ hidden }}{% endfor %}
+                <div class="d-none">{{ lignes.empty_form.DELETE }}</div>
+                <div class="row g-3 align-items-start">
+                    <div class="col-lg-6">
+                        <label for="{{ lignes.empty_form.designation.id_for_label }}" class="form-label">Désignation <span class="required">*</span></label>
+                        {{ lignes.empty_form.designation }}
+                    </div>
+                    <div class="col-sm-5 col-lg-2">
+                        <label for="{{ lignes.empty_form.quantite.id_for_label }}" class="form-label">Quantité <span class="required">*</span></label>
+                        {{ lignes.empty_form.quantite }}
+                    </div>
+                    <div class="col-sm-5 col-lg-3">
+                        <label for="{{ lignes.empty_form.unite.id_for_label }}" class="form-label">Unité</label>
+                        {{ lignes.empty_form.unite }}
+                    </div>
+                    <div class="col-sm-2 col-lg-1 d-flex align-items-end remove-cell">
+                        <button type="button" class="btn btn-outline-danger remove-line" aria-label="Retirer cette ligne">×</button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <div class="form-actions d-flex flex-column-reverse flex-sm-row justify-content-between gap-3">
+        <a href="{% if est_creation %}{% url 'dashboard' %}{% else %}{% url 'demande_detail' demande.pk %}{% endif %}" class="btn btn-light border">Annuler</a>
+        <button type="submit" class="btn btn-primary btn-lg px-5">
+            {% if est_creation %}Créer la demande{% else %}Enregistrer les modifications{% endif %}
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/formset.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <span class="eyebrow">Vue d’ensemble</span>
+        <h1>Demandes de matières</h1>
+        <p class="text-secondary mb-0">Consultez, recherchez et gérez toutes les demandes.</p>
+    </div>
+    <a href="{% url 'demande_creer' %}" class="btn btn-primary btn-lg align-self-start">
+        <span aria-hidden="true">＋</span> Nouvelle demande
+    </a>
+</div>
+
+<section class="row g-3 mb-4" aria-label="Synthèse des demandes">
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-total">
+            <span class="stat-label">Total</span>
+            <strong>{{ total }}</strong>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-draft">
+            <span class="stat-label">Brouillons</span>
+            <strong>{{ total_brouillon }}</strong>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-progress">
+            <span class="stat-label">En cours</span>
+            <strong>{{ total_en_cours }}</strong>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card stat-closed">
+            <span class="stat-label">Clôturées</span>
+            <strong>{{ total_cloturee }}</strong>
+        </div>
+    </div>
+</section>
+
+<section class="content-card">
+    <form method="get" class="filter-bar row g-3 align-items-end">
+        <div class="col-lg-7">
+            <label for="search" class="form-label">Rechercher</label>
+            <input
+                id="search"
+                type="search"
+                name="q"
+                value="{{ recherche }}"
+                class="form-control"
+                placeholder="Référence, objet ou district"
+            >
+        </div>
+        <div class="col-sm-7 col-lg-3">
+            <label for="status-filter" class="form-label">Statut</label>
+            <select id="status-filter" name="statut" class="form-select">
+                <option value="">Tous les statuts</option>
+                {% for valeur, libelle in statuts %}
+                    <option value="{{ valeur }}" {% if statut_actif == valeur %}selected{% endif %}>{{ libelle }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-sm-5 col-lg-2 d-grid">
+            <button type="submit" class="btn btn-dark">Filtrer</button>
+        </div>
+        {% if recherche or statut_actif %}
+            <div class="col-12 pt-0">
+                <a href="{% url 'dashboard' %}" class="small link-secondary">Effacer les filtres</a>
+            </div>
+        {% endif %}
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Objet</th>
+                    <th>District</th>
+                    <th>Statut</th>
+                    <th>Créée le</th>
+                    <th>Créateur</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for demande in demandes %}
+                    <tr>
+                        <td><a class="reference-link" href="{% url 'demande_detail' demande.pk %}">{{ demande.reference }}</a></td>
+                        <td class="fw-semibold">{{ demande.objet }}</td>
+                        <td>{{ demande.district }}</td>
+                        <td><span class="status-badge status-{{ demande.statut|lower }}">{{ demande.get_statut_display }}</span></td>
+                        <td>{{ demande.cree_le|date:"d/m/Y H:i" }}</td>
+                        <td>{{ demande.createur.get_full_name|default:demande.createur.username|default:"—" }}</td>
+                        <td>
+                            <div class="d-flex justify-content-end gap-2 action-buttons">
+                                <a href="{% url 'demande_detail' demande.pk %}" class="btn btn-sm btn-outline-primary">Voir</a>
+                                <a href="{% url 'demande_modifier' demande.pk %}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <div class="empty-icon" aria-hidden="true">DM</div>
+                                <h2>Aucune demande trouvée</h2>
+                                {% if recherche or statut_actif %}
+                                    <p>Modifiez vos critères ou effacez les filtres.</p>
+                                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Afficher toutes les DM</a>
+                                {% else %}
+                                    <p>Créez la première demande de matières.</p>
+                                    <a href="{% url 'demande_creer' %}" class="btn btn-primary">Nouvelle demande</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

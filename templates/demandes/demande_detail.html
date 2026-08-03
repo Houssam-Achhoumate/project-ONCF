@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}{{ demande.reference }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
+    <div>
+        <a href="{% url 'dashboard' %}" class="back-link">← Tableau de bord</a>
+        <div class="d-flex align-items-center gap-3 mt-3 mb-2 flex-wrap">
+            <h1 class="mb-0">{{ demande.reference }}</h1>
+            <span class="status-badge status-{{ demande.statut|lower }}">{{ demande.get_statut_display }}</span>
+        </div>
+        <p class="text-secondary mb-0">Créée le {{ demande.cree_le|date:"d/m/Y à H:i" }}</p>
+    </div>
+    <div class="d-flex gap-2 align-self-lg-end">
+        <a href="{% url 'demande_modifier' demande.pk %}" class="btn btn-primary">Modifier</a>
+        <a href="{% url 'demande_supprimer' demande.pk %}" class="btn btn-outline-danger">Supprimer</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <section class="content-card detail-card h-100">
+            <div class="section-heading">
+                <span class="section-number">01</span>
+                <div><h2>Informations de la demande</h2></div>
+            </div>
+            <dl class="detail-grid">
+                <div>
+                    <dt>Objet</dt>
+                    <dd>{{ demande.objet }}</dd>
+                </div>
+                <div>
+                    <dt>District</dt>
+                    <dd>{{ demande.district }}</dd>
+                </div>
+                <div class="detail-full">
+                    <dt>Description</dt>
+                    <dd>{{ demande.description|default:"Aucune description."|linebreaksbr }}</dd>
+                </div>
+            </dl>
+        </section>
+    </div>
+    <div class="col-lg-4">
+        <aside class="content-card detail-card h-100">
+            <div class="section-heading compact">
+                <span class="section-number">i</span>
+                <div><h2>Suivi</h2></div>
+            </div>
+            <dl class="metadata-list">
+                <div><dt>Créateur</dt><dd>{{ demande.createur.get_full_name|default:demande.createur.username|default:"Compte supprimé" }}</dd></div>
+                <div><dt>Créée le</dt><dd>{{ demande.cree_le|date:"d/m/Y H:i" }}</dd></div>
+                <div><dt>Dernière modification</dt><dd>{{ demande.modifiee_le|date:"d/m/Y H:i" }}</dd></div>
+            </dl>
+        </aside>
+    </div>
+</div>
+
+<section class="content-card mt-4">
+    <div class="section-heading px-card pt-card">
+        <span class="section-number">02</span>
+        <div>
+            <h2>Articles demandés</h2>
+            <p>{{ demande.lignes.count }} ligne{{ demande.lignes.count|pluralize }}</p>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0 detail-table">
+            <thead><tr><th>#</th><th>Désignation</th><th class="text-end">Quantité</th><th>Unité</th></tr></thead>
+            <tbody>
+                {% for ligne in demande.lignes.all %}
+                    <tr>
+                        <td class="text-secondary">{{ forloop.counter|stringformat:"02d" }}</td>
+                        <td class="fw-semibold">{{ ligne.designation }}</td>
+                        <td class="text-end quantity">{{ ligne.quantite|floatformat:"-2" }}</td>
+                        <td>{{ ligne.unite|default:"—" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

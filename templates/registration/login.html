@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+    <section class="auth-panel" aria-labelledby="login-title">
+        <div class="auth-brand">
+            <span class="brand-mark brand-mark-large">ONCF</span>
+            <p>Maintenance Infrastructure</p>
+        </div>
+        <div class="login-card shadow-lg">
+            <div class="login-heading">
+                <span class="eyebrow">Espace interne</span>
+                <h1 id="login-title">Suivi des demandes de matières</h1>
+                <p>Connectez-vous pour consulter et gérer les DM.</p>
+            </div>
+
+            {% if form.errors %}
+                <div class="alert alert-danger" role="alert">
+                    Identifiant ou mot de passe incorrect.
+                </div>
+            {% endif %}
+
+            {% if next and user.is_authenticated %}
+                <div class="alert alert-warning">Votre compte ne permet pas d’accéder à cette page.</div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+                <div class="mb-3">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">Nom d’utilisateur</label>
+                    {{ form.username }}
+                </div>
+                <div class="mb-4">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">Mot de passe</label>
+                    {{ form.password }}
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100">Se connecter</button>
+            </form>
+        </div>
+        <p class="auth-footer">Prototype local — Gestion simplifiée des DM</p>
+    </section>
+</div>
+{% endblock %}

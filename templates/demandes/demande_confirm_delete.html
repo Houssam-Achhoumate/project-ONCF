@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Supprimer {{ demande.reference }}{% endblock %}
+
+{% block content %}
+<div class="confirm-shell">
+    <section class="content-card confirm-card text-center">
+        <div class="danger-icon" aria-hidden="true">!</div>
+        <span class="eyebrow text-danger">Suppression définitive</span>
+        <h1>Supprimer {{ demande.reference }} ?</h1>
+        <p>
+            La demande « {{ demande.objet }} » et ses {{ demande.lignes.count }} ligne{{ demande.lignes.count|pluralize }}
+            seront définitivement supprimées. Cette action est irréversible.
+        </p>
+        <form method="post" class="d-flex flex-column-reverse flex-sm-row justify-content-center gap-3 mt-4">
+            {% csrf_token %}
+            <a href="{% url 'demande_detail' demande.pk %}" class="btn btn-light border">Annuler</a>
+            <button type="submit" class="btn btn-danger">Oui, supprimer la demande</button>
+        </form>
+    </section>
+</div>
+{% endblock %}
